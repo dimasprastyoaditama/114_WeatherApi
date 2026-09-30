@@ -1,45 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Pencarian Lokasi | Dimas Prastyo</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .header-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #ddd;
+        }
+        
+        .header-info h4 { color: #555; }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: #2a5298; }
+
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover { background: #1e3c72; }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            display: none; /* Disembunyikan sampai ada hasil */
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .data-row:last-child { border-bottom: none; }
+        .label { font-size: 13px; color: #777; font-weight: bold; }
+        .value { font-size: 14px; font-weight: 600; text-align: right; }
+        .error-msg { color: red; text-align: center; display: none; font-size: 14px;}
+    </style>
 </head>
-
 <body>
-    <h3>Dimas Prastyo Aditama : </h3>
-    <h3>20240140114: </h3>
 
-    <p>
-        kota :
-        <span id="lokasi"></span>
-    </p>
+    <div class="container">
+        <div class="header-info">
+            <h4>Dimas Prastyo Aditama</h4>
+            <h4>NIM: 20240140114</h4>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="inputLokasi" placeholder="Cari kota, contoh: Bantul">
+            <button onclick="cariLokasi()">Cari</button>
+        </div>
 
-    <hr>
+        <p id="errorMsg" class="error-msg">Lokasi tidak ditemukan!</p>
 
-    <p>
-        Koordinat :
-        <span id="negara"></span>
-    </p>
+        <div class="result-card" id="resultCard">
+            <div class="data-row">
+                <span class="label">Lokasi Utama</span>
+                <span class="value" id="resLokasi">-</span>
+            </div>
+            <div class="data-row">
+                <span class="label">Kecamatan/Kota</span>
+                <span class="value" id="resKecamatan">-</span>
+            </div>
+            <div class="data-row">
+                <span class="label">Provinsi</span>
+                <span class="value" id="resProvinsi">-</span>
+            </div>
+            <div class="data-row">
+                <span class="label">Negara</span>
+                <span class="value" id="resNegara">-</span>
+            </div>
+            <div class="data-row">
+                <span class="label">Longitude</span>
+                <span class="value" id="resLon">-</span>
+            </div>
+            <div class="data-row">
+                <span class="label">Latitude</span>
+                <span class="value" id="resLat">-</span>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function cariLokasi() {
+            const kotaInput = document.getElementById("inputLokasi").value;
+            const errorMsg = document.getElementById("errorMsg");
+            const resultCard = document.getElementById("resultCard");
 
-        fetch("/api/lokasi")
-            .then((response) => response.json())
-            .then((data) => {
-                
-                console.log(data);
+            if (!kotaInput) return alert("Masukkan nama kota dulu!");
 
-                document.getElementById("lokasi").innerHTML = data.kota;
+            // Mengirim request ke backend Node.js Anda (app.js) dengan parameter kota
+            fetch(`/api/lokasi?kota=${encodeURIComponent(kotaInput)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Data tidak ditemukan");
+                    return response.json();
+                })
+                .then(data => {
+                    // Masukkan data JSON dari backend ke dalam HTML
+                    document.getElementById("resLokasi").innerText = data.lokasi;
+                    document.getElementById("resKecamatan").innerText = data.kecamatan;
+                    document.getElementById("resProvinsi").innerText = data.provinsi;
+                    document.getElementById("resNegara").innerText = data.negara;
+                    document.getElementById("resLon").innerText = data.longitude.toFixed(5);
+                    document.getElementById("resLat").innerText = data.latitude.toFixed(5);
 
-                document.getElementById("negara").innerHTML = data.koordinat;
-
-            })
-            .catch((error) => {
-                console.error(Error);
-
-            });
-
+                    errorMsg.style.display = "none";
+                    resultCard.style.display = "flex";
+                })
+                .catch(error => {
+                    console.error(error);
+                    errorMsg.style.display = "block";
+                    resultCard.style.display = "none";
+                });
+        }
     </script>
 
 </body>
